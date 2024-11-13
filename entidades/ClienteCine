@@ -1,0 +1,59 @@
+//package cliente;
+
+import java.io.*;
+import java.net.*;
+import java.util.Scanner;
+
+public class ClienteCine {
+    private static final String HOST = "localhost";
+    private static final int PUERTO = 4040;
+
+    public static void main(String[] args) {
+        try (Socket socket = new Socket(HOST, PUERTO);
+             DataOutputStream out = new DataOutputStream(socket.getOutputStream());
+             DataInputStream in = new DataInputStream(socket.getInputStream());
+             Scanner scanner = new Scanner(System.in)) {
+
+
+            // Seleccionar la función
+            System.out.println("Seleccione la función (1-5):");
+            int funcion = scanner.nextInt() - 1; // Restar 1 para usar el índice adecuado
+
+            // Enviar la solicitud de función seleccionada
+            out.writeUTF("funcion:" + funcion);
+            out.flush();
+
+
+            // Recibir y mostrar los asientos disponibles de la función seleccionada
+            System.out.println("Asientos disponibles en la función " + (funcion + 1) + ":");
+            mostrarAsientos(in);
+
+            // Elegir asiento
+            System.out.println("Seleccione el asiento (fila-columna):");
+            String asientoSeleccionado = scanner.next();
+
+            // Enviar la solicitud de compra de asiento
+            out.writeUTF("asiento:" + asientoSeleccionado);
+            out.flush();
+
+            // Recibir respuesta sobre si la compra fue exitosa
+            String resultadoCompra = in.readUTF();
+            System.out.println(resultadoCompra);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static void mostrarAsientos(DataInputStream in) throws IOException {
+        // Recibir el estado de los asientos como un arreglo 2D de cadenas
+        int filas = 5, columnas = 5;  // Definir el tamaño de la sala
+        for (int i = 0; i < filas; i++) {
+            for (int j = 0; j < columnas; j++) {
+                String estado = in.readUTF();  // Leer estado de cada asiento
+                System.out.print(estado + " ");
+            }
+            System.out.println();
+        }
+    }
+}
